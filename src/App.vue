@@ -1,9 +1,16 @@
 <script setup lang="ts">
 
+// import { ref } from "vue";
 import MathCell from "./components/MathCell.vue";
 import "//unpkg.com/mathlive?module";
 
 // console.log(e);
+
+(window as any).runNum = 0;
+
+// function runCell() {
+//     runNum.value++;
+// }
 
 </script>
 
