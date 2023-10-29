@@ -1,22 +1,36 @@
 <script setup lang="ts">
 
-import { Ref, onMounted, ref } from "vue";
+import { Ref, computed, onMounted, ref } from "vue";
 import "//unpkg.com/mathlive?module";
 import { MathfieldElement } from "mathlive";
 
 const mf = ref(null) as unknown as Ref<MathfieldElement>;
 
-function copyLatex() {
-    if(!mf.value) return;
+const alias = ref("_1") as unknown as Ref<string>;
+
+const exec = ref(0) as unknown as Ref<number>;
+const execFormatted = computed(() => {
+    return `[${exec.value ? exec.value : " "}]`;
+});
+
+function getRaw() {
+    if (!mf.value) return;
     let val = mf.value.getValue();
-    if(val.startsWith("$$")) val = val.slice(2);
-    if(val.endsWith("$$")) val = val.slice(0, -2);
+    if (val.startsWith("$$")) val = val.slice(2);
+    if (val.endsWith("$$")) val = val.slice(0, -2);
+    return val;
+}
+function copyLatex() {
+    let val = getRaw();
+    if (!val) return;
     navigator.clipboard.writeText(val);
 }
 
 function openWolfram() {
     // let e = new MathfieldElement();
-    console.log(mf.value.getValue());
+    let val = getRaw();
+    if (!val) return;
+    window.open(`https://www.wolframalpha.com/input/?i=${encodeURIComponent(val)}`);
 }
 
 onMounted(() => {
@@ -31,26 +45,24 @@ onMounted(() => {
 <template>
     <div class="cell-div">
         <div class="exec-div">
-        <pre>
-            <input spellcheck="false" value="_1 = ">
-        </pre>
+            <span>{{ execFormatted }}</span>
         </div>
         <div class="code-div">
             <pre>
-                <input spellcheck="false" value="_1 = ">
+                <input spellcheck="false" v-model=alias>
+                <span>= </span>
             </pre>
         </div>
         <div class="math-div">
             <math-field class="math-field" ref="mf">\int_3^9\cos(3x)dx</math-field>
         </div>
         <div class="ma-copy">
-            <button @click="copyLatex">
+            <button @click="copyLatex" title="LaTeX (Desmos)">
             <font-awesome-icon icon="fa-regular fa-copy" />
-            LaTeX (Desmos)
             </button>
         </div>
         <div class="wolfram-link">
-            <button @click="openWolfram">WolframAlpha</button>
+            <button @click="openWolfram" title="WolframAlpha">W</button>
         </div>
     </div>
 </template>
@@ -59,7 +71,7 @@ onMounted(() => {
 
 
 .math-field {
-    min-width: 12em;
+    min-width: 20vw;
     /* min-height: 3em; */
 }
 
@@ -83,16 +95,32 @@ onMounted(() => {
     color: #ff2e2e;
 } */
 
-.code-div pre {
+.code-div pre, .exec-div pre {
     display: flex;
-}
-.code-div pre input {
+    flex-basis: min-content;
     font-family: monospace;
+    padding: 4px;
+
+}
+.code-div pre input, .code-div pre span {
     resize: none;
     background-color: #f0f0f0;
+    font-family: monospace;
     border: none;
-    width: 3em;
+    padding: none;
+}
+.exec-div span {
+    display: flex;
+    flex-basis: min-content;
+    font-family: monospace;
     padding: 4px;
+    cursor: pointer;
+
+}
+.code-div pre input {
+    display: flex;
+    flex-basis: min-content;
+    width: 1.6em;
 }
 .code-div pre input:focus-visible {
     outline: #cccccc solid 1px;
