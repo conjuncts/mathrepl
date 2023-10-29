@@ -10,7 +10,9 @@ import "//unpkg.com/mathlive?module";
 
 (window as any).runNum = 0;
 
-const cells = ref([{'txt': "\\int_3^9\cos(3x)dx", 'insertId': 0}]);
+const cells = ref([{'txt': "\\int_3^9\cos(3x)dx", 'insertId': 0},
+                    {'txt': "\\frac{3+477}{38}", 'insertId': 1},
+                {'txt': "R=8.314", "insertId": 2}]);
 // function runCell() {
 //     runNum.value++;
 // }
@@ -27,7 +29,8 @@ function insertBelow(idx: number) {
         <h1>MathREPL</h1>
         
         <!-- <MathGUI /> -->
-        <MathCell v-for="(cell, index) in cells" :key="cell['insertId']">
+        <MathCell v-for="(cell, index) in cells" :key="cell['insertId']" 
+            :insert-id="cell['insertId']">
 
             <template v-slot:content>
                 {{ cell['txt'] }}
