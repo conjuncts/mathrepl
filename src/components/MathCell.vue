@@ -5,16 +5,18 @@ import "//unpkg.com/mathlive?module";
 import { MathfieldElement, renderMathInElement } from "mathlive";
 import { ce } from "../compute";
 import { BoxedExpression } from "@cortex-js/compute-engine";
+import { registerVariable } from "../registry";
 
 const mf = ref(null) as unknown as Ref<MathfieldElement>;
 const mfOut = ref(null) as unknown as Ref<HTMLSpanElement>;
 
-const alias = ref("_1") as unknown as Ref<string>;
+const alias = ref("_0") as unknown as Ref<string>;
 const output = ref(null) as Ref<BoxedExpression | null>;
 const outputLatex = ref(null) as Ref<string | null>;
-const outputNumeric = ref(null) as Ref<BoxedExpression | null>;
+const outputNumeric = ref(null) as Ref<number | null>;
 // const numeric = ref(null) as Ref<BoxedExpression | null>;
 
+const props = defineProps(['insertId']);
 
 const exec = ref(null) as unknown as Ref<number | null>;
 const execFormatted = computed(() => {
@@ -54,20 +56,33 @@ function runCell(eager=false) {
     if(eager) {
         // TODO 
     }
+
+    // res.subs();
     let evald = res.simplify();
     console.log(evald);
     output.value = evald;
     console.log(evald.latex);
     outputLatex.value = evald.latex;
-    outputNumeric.value = evald.N();
+    outputNumeric.value = evald.N().numericValue as any;
     // numeric.value = evald.N();
+    
     console.log(outputNumeric.value);
 
-    
+    let raw = outputNumeric.value;
+    let numbered = null;
+    if(ce.isBignum(raw)) {
+        numbered = raw.toNumber();
+    } else if (ce.isComplex(raw)) {
+        // numbered = raw.re.toNumber() + raw.im.toNumber() * 1j;
+    } else if (Array.isArray(raw)) {
+        numbered = raw[0] / raw[1]; // rational
+    } else {
+        numbered = raw; // machine number
+    }
     // let latex = evald.latex;
 
     mfOut.value.innerText = '$$' + (evald.isExact ? '=' : '\\approx')
-        + evald.latex + '$$';
+        + evald.latex + (numbered != null ? '\\approx' + numbered : '' ) + '$$';
 
     // let ele = mf.value;
     // if (!ele) return;
@@ -81,6 +96,11 @@ function runCell(eager=false) {
 
     exec.value = (window as any).runNum++;
 
+    // if(numbered) {
+    registerVariable(alias.value, numbered, evald.latex);
+    // }
+
+
 }
 
 onMounted(() => {
@@ -89,7 +109,12 @@ onMounted(() => {
     mf.value.focus();
     window.mathVirtualKeyboard.hide();
     mf.value.blur();
+    alias.value = "_" + props.insertId;
+
 });
+// created(() => {
+
+// });
 </script>
 
 <template>

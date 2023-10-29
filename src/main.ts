@@ -15,6 +15,7 @@ import App from './App.vue';
 // /* add icons to the library */
 // library.add(faCopy)
 
+
 createApp(App)
     // .component('font-awesome-icon', FontAwesomeIcon)
     .mount('#app');
