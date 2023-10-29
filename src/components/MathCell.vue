@@ -3,10 +3,15 @@
 import { Ref, computed, onMounted, ref } from "vue";
 import "//unpkg.com/mathlive?module";
 import { MathfieldElement } from "mathlive";
+import { ce } from "../compute";
+import { BoxedExpression } from "@cortex-js/compute-engine";
 
 const mf = ref(null) as unknown as Ref<MathfieldElement>;
 
 const alias = ref("_1") as unknown as Ref<string>;
+const output = ref(null) as Ref<BoxedExpression | null>;
+// const numeric = ref(null) as Ref<BoxedExpression | null>;
+
 
 const exec = ref(0) as unknown as Ref<number>;
 const execFormatted = computed(() => {
@@ -33,6 +38,28 @@ function openWolfram() {
     window.open(`https://www.wolframalpha.com/input/?i=${encodeURIComponent(val)}`);
 }
 
+function run(eager=false) {
+    let latex = getRaw();
+    if (!latex) return;
+    let res = ce.parse(latex);
+    console.log(res);
+    // let simpler = res.simplify();
+
+    // TODO if eager evaluation, assume all variables that have been previously declared
+    if(eager) {
+        // TODO 
+    } else {
+        let evald = res.evaluate();
+        console.log(evald);
+        output.value = evald;
+        console.log(evald.latex);
+
+        // numeric.value = evald.N();
+        // console.log(numeric.value);
+    }
+    
+}
+
 onMounted(() => {
     
     // dumb hack to fix the cursor
@@ -44,7 +71,7 @@ onMounted(() => {
 
 <template>
     <div class="cell-div">
-        <div class="exec-div">
+        <div class="exec-div" @click="run(false)">
             <span>{{ execFormatted }}</span>
         </div>
         <div class="code-div">
@@ -58,7 +85,8 @@ onMounted(() => {
         </div>
         <div class="ma-copy">
             <button @click="copyLatex" title="LaTeX (Desmos)">
-            <font-awesome-icon icon="fa-regular fa-copy" />
+            <!-- <font-awesome-icon icon="fa-regular fa-copy" /> -->
+            <img src="../assets/copy-regular.svg" alt="copy">
             </button>
         </div>
         <div class="wolfram-link">

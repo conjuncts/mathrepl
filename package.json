@@ -9,13 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-regular-svg-icons": "^6.4.2",
-    "@fortawesome/vue-fontawesome": "^3.0.3",
+    "@cortex-js/compute-engine": "^0.19.1",
     "mathlive": "^0.95.5",
+    "vite-plugin-external": "^4.0.1",
     "vue": "^3.3.4"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-regular-svg-icons": "^6.4.2",
+    "@fortawesome/vue-fontawesome": "^3.0.3",
     "@vitejs/plugin-vue": "^4.2.3",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
