@@ -93,6 +93,7 @@ onMounted(() => {
 </script>
 
 <template>
+
     <div class="cell-div">
     <div class="input-div">
         <div class="exec-div" @click="runCell(false)">
@@ -105,7 +106,9 @@ onMounted(() => {
             </pre>
         </div>
         <div class="math-div">
-            <math-field class="math-field" ref="mf">\int_3^9\cos(3x)dx</math-field>
+            <math-field class="math-field" ref="mf">
+                <slot name="content"/>
+            </math-field>
         </div>
         <div class="ma-copy">
             <button @click="copyLatex(false)" title="LaTeX (Desmos)">
@@ -129,6 +132,8 @@ onMounted(() => {
         </div>
     </div>
     </div>
+    <slot name="inserts"/>
+
 </template>
 
 <style scoped>
@@ -139,7 +144,7 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     gap: 0.4em;
-    border: 1px solid red;
+    border: 1px solid grey;
     padding: 0.4em;
 }
 .math-field {
