@@ -5,7 +5,7 @@ import "//unpkg.com/mathlive?module";
 import { MathfieldElement, renderMathInElement } from "mathlive";
 import { ce } from "../compute";
 import { BoxedExpression } from "@cortex-js/compute-engine";
-import { registerVariable } from "../registry";
+import { numericals, registerVariable } from "../registry";
 
 const mf = ref(null) as unknown as Ref<MathfieldElement>;
 const mfOut = ref(null) as unknown as Ref<HTMLSpanElement>;
@@ -56,7 +56,16 @@ function runCell(eager=false) {
     if(eager) {
         // TODO 
     }
-
+    console.log("try sub");
+    for(let x of numericals.keys()) {
+        let val = numericals.get(x);
+        if(val && res.freeVariables.includes(x)) {
+            console.log("substituting: " + x + " -> " + val);
+            let subbed = {} as any;
+            subbed[x] = val;
+            res = res.subs(subbed);
+        }
+    }
     // res.subs();
     let evald = res.simplify();
     console.log(evald);
@@ -109,7 +118,7 @@ onMounted(() => {
     mf.value.focus();
     window.mathVirtualKeyboard.hide();
     mf.value.blur();
-    alias.value = "_" + props.insertId;
+    alias.value = "V_" + props.insertId;
 
 });
 // created(() => {
