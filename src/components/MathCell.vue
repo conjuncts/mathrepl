@@ -25,8 +25,32 @@ const execFormatted = computed(() => {
 });
 
 function getRaw() {
-    if (!mf.value) return;
-    let val = mf.value.getValue();
+
+    // if multi line, just take the last one as evaluation (TODO)
+    let mfe = mf.value;
+    if (!mfe) return;
+
+    (window as any).mfe = mfe; // debug
+
+    let val = mfe.getValue();
+
+    if((mfe as any)._mathfield.model.root.type == 'array'
+        && (mfe as any)._mathfield.model.root.array.length > 0) {
+        // the array contains stuff I can't immediately process
+        // screw it, let's process latex
+        
+        if(val.startsWith('\\begin{lines}') && val.endsWith('\\end{lines}')) {
+            let start = '\\begin{lines}'.length;
+            let end = val.length - '\\end{lines}'.length;
+            val = val.substring(start, end);
+            let lines = val.split('\\\\');
+            // \\\\ serves as a newline
+            // TODO put all lines in a for loop to evaluate
+            val = lines[lines.length - 1];
+        }
+    } 
+    
+
     if (val.startsWith("$$")) val = val.slice(2);
     if (val.endsWith("$$")) val = val.slice(0, -2);
     return val;
@@ -129,12 +153,24 @@ function runCell(eager=true) {
 onMounted(() => {
     
     // dumb hack to fix the cursor
-    mf.value.mathVirtualKeyboardPolicy = "manual";
-    mf.value.focus();
+    let mfe = mf.value;
+    mfe.mathVirtualKeyboardPolicy = "manual";
+    mfe.focus();
 
     // window.mathVirtualKeyboard.hide();
-    mf.value.blur();
+    mfe.blur();
     alias.value = "V_" + props.insertId;
+
+    // custom keybindings
+    // https://cortexjs.io/mathlive/guides/shortcuts/
+    // console.log(mfe.keybindings);
+    mfe.keybindings = mfe.keybindings.filter((x: any) => (x.key != 'ctrl+[Enter]') 
+                    && (x.key != 'cmd+[Enter]'));
+    mfe.keybindings = [
+        ...mfe.keybindings,
+        { key: '[Enter]', ifMode: 'math', command: 'addRowAfter' },
+        {key: 'shift+[Enter]', ifMode: 'math', command: 'addRowAfter'} // rebind shift-enter
+    ]
 
 });
 // created(() => {
