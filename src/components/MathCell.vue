@@ -24,6 +24,7 @@ const execFormatted = computed(() => {
     return `[${exec.value != null ? exec.value : " "}]`;
 });
 
+const emit = defineEmits(['move-to-next', 'move-to-prev']);
 function getRaw() {
 
     // if multi line, just take the last one as evaluation (TODO)
@@ -170,8 +171,45 @@ onMounted(() => {
         ...mfe.keybindings,
         { key: '[Enter]', ifMode: 'math', command: 'addRowAfter' },
         {key: 'shift+[Enter]', ifMode: 'math', command: 'addRowAfter'} // rebind shift-enter
-    ]
+    ];
 
+    // events: https://cortexjs.io/mathlive/guides/interacting/
+    // https://cortexjs.io/compute-engine/guides/augmenting/
+    mfe.addEventListener("move-out", (e: any) => {
+        // console.log(e);
+        // console.log(mf.value.getValue());
+        // runCell();
+        mfe.blur();
+        console.log(e);
+        if(e.detail.direction == 'backward') {
+            emit('move-to-prev', props.insertId); // this id is not used atm
+        } else {
+            emit('move-to-next', props.insertId);
+
+        }
+    });
+
+    mfe.addEventListener('keydown', (ev: KeyboardEvent) => {
+        // console.log(keystroke);
+        // console.log(ev);
+        if(ev.ctrlKey && ev.key == 'Enter') {
+            mfe.blur();
+            emit('move-to-next', props.insertId);
+
+            runCell();
+        }
+    });
+
+});
+
+function mfFocus() {
+    let mfe = mf.value;
+    if (!mfe) return;
+    mfe.focus();
+}
+
+defineExpose({
+    mfFocus, getRaw, runCell
 });
 // created(() => {
 
