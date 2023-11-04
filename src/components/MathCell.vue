@@ -7,7 +7,7 @@ import { ce } from "../compute";
 import { BoxedExpression, Rational } from "@cortex-js/compute-engine";
 import type { Complex } from 'complex.js';
 import type { Decimal } from 'decimal.js';
-import { numericals, registerVariable } from "../registry";
+import { raws, numericals, registerVariable } from "../registry";
 
 const mf = ref(null) as unknown as Ref<MathfieldElement>;
 const mfOut = ref(null) as unknown as Ref<HTMLSpanElement>;
@@ -73,7 +73,7 @@ function openWolfram(output=false) {
 
 type Numeric = number | Decimal | Complex | Rational | null;
 function constructOutputLatex(alias: string, simplExpr: BoxedExpression, _numExpr: BoxedExpression, 
-        raw: Numeric) {
+        raw: Numeric, didModifications=false) {
     
     let numerical = null;
     let outputLatex = null;
@@ -89,7 +89,7 @@ function constructOutputLatex(alias: string, simplExpr: BoxedExpression, _numExp
         outputLatex = '= ' + simplExpr.latex + ' \\approx ' + numerical;
     } else if(raw == null){
         numerical = null;
-        outputLatex = '= ...';
+        outputLatex = '= ' + (didModifications ? simplExpr.latex : '...');
     } else {
         numerical = raw; // machine number
         outputLatex = '= ' + numerical;
@@ -111,21 +111,41 @@ function runCell(eager=true) {
     // let simpler = res.simplify();
 
     // TODO if eager evaluation, assume all variables that have been previously declared
-    let subbed = res;     // (2): substituted
+    let subbedBox = res;     // (2): substituted
+
+    let didModifications = false;
     if(eager) {
         console.log("try sub");
-        for (let x of numericals.keys()) {
+        for (let x of raws.keys()) {
+            if(!res.freeVariables.includes(x)) continue;
+
+            // a match
+            let subbed: any = undefined;
+            // numerical substitution
             let val = numericals.get(x);
-            if (val && res.freeVariables.includes(x)) {
+            if (val) {
                 console.log("substituting: " + x + " -> " + val);
-                let subbed = {} as any;
+                subbed = {};
                 subbed[x] = val;
-                res = res.subs(subbed);
+            } else {
+                // expression substitution
+                let val = raws.get(x);
+                if (val) {
+                    console.log("substituting: " + x + " -> " + val);
+                    subbed = {};
+                    subbed[x] = val;
+                }
             }
+            if(subbed == undefined) continue;
+
+            subbedBox = subbedBox.subs(subbed);
+            didModifications = true;
+
         }
+
     }
 
-    let evald = subbed.simplify(); // (3): simplified
+    let evald = subbedBox.simplify(); // (3): simplified
 
     console.log(`simplified: ${evald.latex}`, evald);
     simplified.value = evald;
@@ -136,7 +156,7 @@ function runCell(eager=true) {
 
 
     let [outputLatex, numbered] = constructOutputLatex(alias.value, evald, N, 
-            raw);
+            raw, didModifications);
     if(outputLatex == null) {
         outputLatex = '';
     }
@@ -147,7 +167,7 @@ function runCell(eager=true) {
 
     exec.value = (window as any).runNum++;
 
-    registerVariable(alias.value, numbered, evald.latex);
+    registerVariable(alias.value, numbered, evald);
 
 }
 
@@ -220,7 +240,7 @@ defineExpose({
 
     <div class="cell-div">
     <div class="input-div">
-        <div class="exec-div" @click="runCell(false)">
+        <div class="exec-div" @click="runCell(true)">
             <span ref="exec-div-cell">{{ execFormatted }}</span>
         </div>
         <div class="code-div">
@@ -330,7 +350,7 @@ defineExpose({
     align-self: stretch;
     /* border-top: 1px solid grey; */
     border: 1px solid grey;
-    padding: 0.4em 0.4em 0.4em 4em;
+    padding: 0.4em 0.4em 0.4em 3em;
     display: flex;
     flex-direction: row;
     /* background-color: #eee; */
