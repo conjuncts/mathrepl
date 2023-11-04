@@ -2,8 +2,9 @@
 
 // import { ref } from "vue";
 // import { ref, Ref } from "vue";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import MathCell from "./components/MathCell.vue";
+import Nav from "./components/Nav.vue";
 import "//unpkg.com/mathlive?module";
 
 // console.log(e);
@@ -22,11 +23,16 @@ function insertBelow(idx: number) {
     
     cells.value.splice(idx+1, 0, {'txt': "", 'insertId': cells.value.length});
 }
+
+onMounted(() => {
+    
+});
 </script>
 
 <template>
+    <Nav></Nav>
+
     <div class="big-holder">
-        <h1>MathREPL</h1>
         
         <!-- <MathGUI /> -->
         <MathCell v-for="(cell, index) in cells" :key="cell['insertId']" 
@@ -37,7 +43,7 @@ function insertBelow(idx: number) {
             </template>
             <template v-slot:inserts>
                 <div class="btn-hider">
-                    <button @click="insertBelow(index)">Insert Here</button>
+                    <button class="insert-btn" @click="insertBelow(index)">Insert Math</button>
                 </div>
             </template>
         </MathCell>
@@ -64,7 +70,11 @@ function insertBelow(idx: number) {
 .big-holder {
     /* width: 90%; */
     /* left: 5%; */
-    margin: auto;
+    /* margin: auto; */
+    max-width: 1280px;
+    margin: 0 auto;
+
+
 
 }
 
@@ -74,5 +84,13 @@ button {
 button:hover {
     opacity: 1;
     transition: all 0.5s;
+}
+.insert-btn {
+    padding: 0.2em 0.5em 0.2em 0.5em;
+    margin: 2px;
+    border-radius: 0.2em;
+    font-weight: normal;
+    font-size: 0.8em;
+    /* font-family: 'Roboto', sans-serif; */
 }
 </style>
